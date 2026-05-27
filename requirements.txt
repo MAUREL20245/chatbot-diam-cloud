@@ -1,0 +1,15 @@
+ollama
+rich
+streamlit
+fastapi
+uvicorn
+python-multipart
+langchain
+langchain-community
+langchain-ollama
+langchain-text-splitters
+langchain-core
+chromadb
+pypdf
+duckduckgo-search
+ddgs

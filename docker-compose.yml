@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+
+  # Service Ollama — le moteur LLM
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - /usr/share/ollama/.ollama:/root/.ollama 
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+
+  # Service Chatbot — interface principale
+  chatbot:
+    build: .
+    container_name: chatbot
+    ports:
+      - "8501:8501"
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    volumes:
+      - chroma_data:/app/chroma_db
+    restart: unless-stopped
+
+  # Service API FastAPI
+  api:
+    build: .
+    container_name: api
+    ports:
+      - "8001:8001"
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8001
+    restart: unless-stopped
+
+  # Service Agent IA
+  agent:
+    build: .
+    container_name: agent
+    ports:
+      - "8502:8502"
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    command: streamlit run app_agent.py --server.port=8502 --server.address=0.0.0.0
+    restart: unless-stopped
+
+  # Service RAG
+  rag:
+    build: .
+    container_name: rag
+    ports:
+      - "8503:8503"
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    volumes:
+      - chroma_data:/app/chroma_db
+    command: streamlit run app_rag.py --server.port=8503 --server.address=0.0.0.0
+    restart: unless-stopped
+
+volumes:
+  ollama_models:
+  chroma_data:

@@ -1,0 +1,72 @@
+import streamlit as st
+from src.agent import AIAgent
+
+# ── Configuration ─────────────────────────────────────────────────
+st.set_page_config(
+    page_title="Agent IA — Club D.I.A.M",
+    page_icon="🤖",
+    layout="centered"
+)
+
+st.title("🧠 Agent IA Local")
+st.caption("Un agent capable de raisonner et d'utiliser des outils — Propulsé par Ollama")
+
+# ── Initialisation ────────────────────────────────────────────────
+if "agent" not in st.session_state:
+    with st.spinner("Initialisation de l'agent..."):
+        st.session_state.agent = AIAgent()
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# ── Sidebar ───────────────────────────────────────────────────────
+with st.sidebar:
+    st.header("🔧 Outils disponibles")
+    st.markdown("""
+    | Outil | Rôle |
+    |-------|------|
+    | 🧮 calculatrice | Calculs mathématiques |
+    | 🕐 date_heure | Date et heure actuelle |
+    | 🌐 recherche_web | Chercher sur internet |
+    | 📄 recherche_doc | Chercher dans les PDFs |
+    """)
+
+    st.divider()
+    st.markdown("**Exemples de questions :**")
+    st.markdown("""
+    - *Quelle heure est-il ?*
+    - *Calcule 15% de 85000*
+    - *Quelles sont les dernières nouvelles IA ?*
+    - *Quels sont les modules B2 dans mes documents ?*
+    """)
+
+    st.divider()
+    if st.button("🗑️ Effacer", use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
+
+# ── Historique ────────────────────────────────────────────────────
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# ── Saisie ────────────────────────────────────────────────────────
+if prompt := st.chat_input("Pose une question à l'agent..."):
+
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    st.session_state.messages.append({
+        "role": "user",
+        "content": prompt
+    })
+
+    with st.chat_message("assistant"):
+        with st.spinner("L'agent réfléchit et agit..."):
+            response = st.session_state.agent.run(prompt)
+        st.markdown(response)
+
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": response
+    })

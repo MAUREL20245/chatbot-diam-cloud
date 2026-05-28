@@ -8,8 +8,8 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("🧠 Agent IA Local")
-st.caption("Un agent capable de raisonner et d'utiliser des outils — Propulsé par Ollama")
+st.title("🧠 Agent IA — Club D.I.A.M")
+st.caption("Un agent capable de raisonner et d'utiliser des outils — Propulsé par Groq")
 
 # ── Initialisation ────────────────────────────────────────────────
 if "agent" not in st.session_state:
@@ -64,9 +64,16 @@ if prompt := st.chat_input("Pose une question à l'agent..."):
     with st.chat_message("assistant"):
         with st.spinner("L'agent réfléchit et agit..."):
             response = st.session_state.agent.run(prompt)
-        st.markdown(response)
+
+        # Afficher uniquement la Final Answer
+        if "Final Answer:" in response:
+            clean_response = response.split("Final Answer:")[-1].strip()
+        else:
+            clean_response = response
+
+        st.markdown(clean_response)
 
     st.session_state.messages.append({
         "role": "assistant",
-        "content": response
+        "content": clean_response
     })

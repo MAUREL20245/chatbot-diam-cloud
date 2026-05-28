@@ -1,7 +1,6 @@
-from langchain_ollama import OllamaLLM
+from groq import Groq
 from langchain_community.tools import DuckDuckGoSearchRun
 from src.config import CONFIG
-from src.rag import RAGSystem
 from datetime import datetime
 import math
 import re
@@ -20,7 +19,8 @@ def date_heure(query: str) -> str:
     return f"Nous sommes le {now.strftime('%A %d %B %Y')} à {now.strftime('%H:%M')}"
 
 def recherche_doc(question: str) -> str:
-    rag = RAGSystem(model=CONFIG["model"])
+    from src.rag import RAGSystem
+    rag = RAGSystem()
     result = rag.ask(question)
     return result["answer"]
 
@@ -39,8 +39,6 @@ TOOLS_DESCRIPTION = """
 - recherche_web : chercher des infos récentes sur internet
 - recherche_doc : chercher dans les documents PDF indexés
 """
-
-# ── Prompt ReAct ─────────────────────────────────────────────────
 
 REACT_PROMPT = """Tu es un assistant IA. Tu DOIS obligatoirement utiliser un outil avant de répondre.
 Tu réponds TOUJOURS en français.
@@ -64,28 +62,28 @@ IMPORTANT :
 - Pour l'heure ou la date → utilise OBLIGATOIREMENT date_heure
 - Pour un calcul → utilise OBLIGATOIREMENT calculatrice
 - Pour une actualité → utilise OBLIGATOIREMENT recherche_web
-- Pour les documents → utilise OBLIGATOIREMENT recherche_doc
+- Pour les documents → utilise OBLIGATOIREMENT recherche_doc avec LA QUESTION EXACTE de l'utilisateur comme Action Input
 
 Question : {question}
 """
 
-# ── Boucle ReAct manuelle ─────────────────────────────────────────
-
 class AIAgent:
-    """
-    Agent IA avec boucle ReAct manuelle.
-    
-    Thought  → L'agent réfléchit
-    Action   → L'agent choisit un outil
-    Observation → On exécute l'outil et on donne le résultat
-    Final Answer → L'agent répond
-    """
-
     def __init__(self):
-        self.llm = OllamaLLM(
-            model=CONFIG["model"],
-            temperature=0.1
-        )
+        self.client = Groq(api_key=CONFIG["groq_api_key"])
+        self.model = CONFIG["model"]
+
+    def _call_llm(self, prompt: str, stop: list = None) -> str:
+        """Appel au LLM via Groq"""
+        kwargs = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+        }
+        if stop:
+            kwargs["stop"] = stop
+
+        response = self.client.chat.completions.create(**kwargs)
+        return response.choices[0].message.content
 
     def run(self, question: str) -> str:
         prompt = REACT_PROMPT.format(
@@ -94,25 +92,25 @@ class AIAgent:
         )
 
         for i in range(5):
-            response = self.llm.invoke(prompt, stop=["Observation:"])
+            response = self._call_llm(prompt, stop=["Observation:"])
             print(f"\n--- Itération {i+1} ---\n{response}")
 
-            # L'agent a une réponse finale ?
             if "Final Answer:" in response:
                 return response.split("Final Answer:")[-1].strip()
 
-            # L'agent veut utiliser un outil ?
             action_match = re.search(r"Action:\s*(\w+)", response)
             input_match = re.search(r"Action Input:\s*(.+)", response)
 
             if action_match and input_match:
                 tool_name = action_match.group(1).strip()
-
-                # Nettoyer l'input
                 tool_input = input_match.group(1).strip().strip("'\"")
 
                 # Si l'input est vide ou inutile → utiliser la question originale
                 if not tool_input or "None" in tool_input or "je vais" in tool_input.lower():
+                    tool_input = question
+
+                # Pour recherche_doc → toujours utiliser la question originale
+                if tool_name == "recherche_doc":
                     tool_input = question
 
                 if tool_name in TOOLS:
@@ -123,11 +121,8 @@ class AIAgent:
                 print(f"Outil : {tool_name} | Input : {tool_input}")
                 print(f"Observation : {observation}")
 
-                # Enrichir le prompt ET forcer Final Answer
                 prompt += f"\n{response}\nObservation: {observation}\nThought: J'ai le résultat, je formule la réponse finale.\nFinal Answer:"
-
-                # Demander directement la réponse finale
-                final = self.llm.invoke(prompt)
+                final = self._call_llm(prompt)
                 return final.strip()
             else:
                 return response

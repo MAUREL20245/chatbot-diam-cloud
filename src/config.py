@@ -18,9 +18,9 @@ CONFIG = {
 
     "temperature": 0.7,
     "embedding_model": "all-minilm",
-    "chunk_size": 200,
-    "chunk_overlap": 20,
-    "k": 6,
+    "chunk_size": 700,
+    "chunk_overlap": 100,
+    "k": 8,
 
     "system_prompt": """Tu es un assistant IA utile et concis. 
     Tu réponds toujours en français sauf si on te parle autrement."""

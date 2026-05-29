@@ -1,40 +1,44 @@
-#  Chatbot IA Local — Club D.I.A.M
+# 🧠 Agent IA Cloud — Club D.I.A.M
 
-![Python](https://img.shields.io/badge/Python-3.12-blue)
-![Ollama](https://img.shields.io/badge/Ollama-Local%20LLM-green)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Groq](https://img.shields.io/badge/Groq-Cloud%20LLM-orange)
+![Pinecone](https://img.shields.io/badge/Pinecone-Vector%20DB-green)
 ![FastAPI](https://img.shields.io/badge/FastAPI-REST%20API-009688)
 ![Streamlit](https://img.shields.io/badge/Streamlit-UI-FF4B4B)
 ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED)
 ![LangChain](https://img.shields.io/badge/LangChain-RAG-FFD700)
+![Render](https://img.shields.io/badge/Render-Deployed-purple)
 
-> Système IA complet construit progressivement dans le cadre du **Club D.I.A.M** —  
-> Du chatbot local à l'agent IA autonome, en passant par le RAG et l'API REST.
+> Agent IA complet construit progressivement dans le cadre du **Club D.I.A.M** —
+> Du chatbot local à l'agent IA autonome déployé sur le cloud, avec RAG, recherche web et API REST.
+
+🌍 **Demo Live** : [https://chatbot-diam-cloud.onrender.com](https://chatbot-diam-cloud.onrender.com)
 
 ---
 
-##  Vue d'ensemble
+## 🎯 Vue d'ensemble
 
 Ce projet est une plateforme IA modulaire et évolutive qui combine :
 
--  **Chatbot conversationnel** basé sur un LLM local
--  **Système RAG** pour interroger vos propres documents
--  **API REST** exposant tous les services
--  **Agent IA** capable de raisonner et d'utiliser des outils
--  **Architecture Docker** pour un déploiement reproductible
-
-**Tout tourne 100% en local — sans cloud, sans clé API, sans coût.**
+- 💬 **Chatbot conversationnel** basé sur un LLM (local ou cloud)
+- 📚 **Système RAG** pour interroger vos propres documents (Pinecone)
+- ⚡ **API REST** exposant tous les services (FastAPI)
+- 🧠 **Agent IA ReAct** capable de raisonner et d'utiliser des outils
+- 🌐 **Recherche web** en temps réel (DuckDuckGo)
+- 🐳 **Architecture Docker** pour un déploiement reproductible
+- ☁️ **Déployé sur Render** avec Groq comme LLM cloud
 
 ---
 
-##  Architecture
+## 🏗️ Architecture
 
-```
-chatbot-diam/
+\`\`\`
+chatbot-diam-cloud/
 ├── src/
 │   ├── config.py        # Configuration centralisée
-│   ├── chatbot.py       # Logique du chatbot
-│   ├── rag.py           # Système RAG (LangChain + ChromaDB)
-│   └── agent.py         # Agent IA (ReAct from scratch)
+│   ├── chatbot.py       # Logique du chatbot (Ollama local / Groq cloud)
+│   ├── rag.py           # Système RAG (LangChain + Pinecone)
+│   └── agent.py         # Agent IA ReAct (from scratch)
 ├── api/
 │   ├── main.py          # Serveur FastAPI
 │   └── routes/
@@ -42,156 +46,105 @@ chatbot-diam/
 │       └── rag.py       # Endpoints /rag
 ├── app.py               # Interface Streamlit — Chatbot
 ├── app_rag.py           # Interface Streamlit — RAG
-├── app_agent.py         # Interface Streamlit — Agent
+├── app_agent.py         # Interface Streamlit — Agent (déployé)
 ├── Dockerfile
 ├── docker-compose.yml
+├── Procfile             # Configuration Render
 └── requirements.txt
-```
+\`\`\`
 
 ---
 
-##  Stack Technologique
+## 🚀 Stack Technologique
 
-| Composant | Technologie | Rôle |
-|-----------|------------|------|
-| **LLM** | Ollama + llama3.2:3b | Moteur de génération local |
-| **Embeddings** | all-minilm | Vectorisation des documents |
-| **Vector DB** | ChromaDB | Stockage des vecteurs |
-| **RAG** | LangChain | Pipeline Retrieval + Generation |
-| **API** | FastAPI + Uvicorn | Exposition REST |
-| **UI** | Streamlit | Interface utilisateur |
-| **Agent** | ReAct (from scratch) | Raisonnement + outils |
-| **Deploy** | Docker Compose | Orchestration des services |
+| Composant | Local | Cloud | Rôle |
+|-----------|-------|-------|------|
+| **LLM** | Ollama + llama3.2:3b | Groq + llama-3.3-70b | Génération de texte |
+| **Embeddings** | all-minilm | multilingual-e5-large | Vectorisation |
+| **Vector DB** | ChromaDB | Pinecone | Stockage des vecteurs |
+| **RAG** | LangChain | LangChain | Pipeline RAG |
+| **Recherche web** | DuckDuckGo | DuckDuckGo | Infos en temps réel |
+| **API** | FastAPI + Uvicorn | FastAPI + Uvicorn | Exposition REST |
+| **UI** | Streamlit | Streamlit | Interface utilisateur |
+| **Agent** | ReAct (from scratch) | ReAct (from scratch) | Raisonnement + outils |
+| **Deploy** | Docker Compose | Render | Orchestration |
 
 ---
 
-##  Démarrage rapide
+## ⚙️ Configuration centralisée
 
-### Prérequis
-- Docker + Docker Compose
-- 8 GB RAM minimum
+\`\`\`python
+CONFIG = {
+    "mode": "cloud",
+    "local_model": "llama3.2:3b",
+    "cloud_model": "llama-3.3-70b-versatile",
+    "groq_api_key": os.getenv("GROQ_API_KEY"),
+    "temperature": 0.7,
+    "chunk_size": 700,
+    "chunk_overlap": 100,
+    "k": 10,
+}
+\`\`\`
 
-### Lancement
+---
 
-```bash
-# Cloner le repo
-git clone https://github.com/MAUREL20245/chatbot-diam.git
-cd chatbot-diam
+## 🐳 Démarrage local
 
-# Lancer tous les services
+\`\`\`bash
+git clone https://github.com/MAUREL20245/chatbot-diam-cloud.git
+cd chatbot-diam-cloud
 docker compose up -d
-
-# Télécharger le modèle LLM
 docker exec ollama ollama pull llama3.2:3b
-```
-
-### Accès aux services
-
-| Service | URL | Description |
-|---------|-----|-------------|
-|  Chatbot | http://localhost:8501 | Chat conversationnel |
-|  RAG | http://localhost:8503 | Questions sur documents |
-|  Agent | http://localhost:8502 | Agent avec outils |
-|  API Docs | http://localhost:8001/docs | Documentation Swagger |
+\`\`\`
 
 ---
 
-##  API REST
+## 🧠 Agent IA — Pattern ReAct
 
-### Chat
-```bash
-curl -X POST http://localhost:8001/chat/ \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Bonjour, qui es-tu ?"}'
-```
-
-### RAG — Upload document
-```bash
-curl -X POST http://localhost:8001/rag/upload \
-  -F "file=@mon_document.pdf"
-```
-
-### RAG — Question
-```bash
-curl -X POST http://localhost:8001/rag/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question": "De quoi parle ce document ?"}'
-```
-
----
-
-##  Agent IA — Pattern ReAct
-
-L'agent utilise le pattern **ReAct (Reasoning + Acting)** implémenté from scratch :
-
-```
-Question
-   │
-   ▼
-Thought  → Le LLM réfléchit à l'outil à utiliser
-   │
-   ▼
-Action   → Il choisit l'outil
-   │
-   ▼
-Observation → Python exécute le vrai outil
-   │
-   ▼
-Final Answer → Le LLM formule la réponse
-```
-
-### Outils disponibles
+\`\`\`
+Question → Thought → Action → Observation → Final Answer
+\`\`\`
 
 | Outil | Capacité |
 |-------|---------|
-|  calculatrice | Calculs mathématiques |
-|  date_heure | Date et heure actuelle |
-|  recherche_web | Recherche internet (DuckDuckGo) |
-|  recherche_doc | Recherche dans les PDFs indexés |
+| 🧮 calculatrice | Calculs mathématiques |
+| 🕐 date_heure | Date et heure actuelle |
+| 🌐 recherche_web | Recherche internet (DuckDuckGo) |
+| 📄 recherche_doc | Recherche dans les PDFs indexés (Pinecone) |
 
 ---
 
-##  Configuration
+## ☁️ Variables d'environnement Render
 
-Toute la configuration est centralisée dans `src/config.py` :
-
-```python
-CONFIG = {
-    "model": "llama3.2:3b",          # Modèle LLM
-    "temperature": 0.7,               # Créativité
-    "embedding_model": "all-minilm",  # Modèle embeddings
-    "chunk_size": 200,                # Taille des chunks RAG
-    "chunk_overlap": 20,              # Chevauchement
-    "k": 6,                           # Chunks récupérés
-}
-```
+\`\`\`
+GROQ_API_KEY=votre_clé_groq
+PINECONE_API_KEY=votre_clé_pinecone
+PYTHON_VERSION=3.11.9
+\`\`\`
 
 ---
 
-##  Roadmap
+## 📋 Roadmap
 
 - [x] Phase 1 — Chatbot local (Ollama + Python)
 - [x] Phase 2 — Interface Streamlit
 - [x] Phase 3 — Système RAG (LangChain + ChromaDB)
 - [x] Phase 4 — API REST (FastAPI)
 - [x] Phase 5 — Agent IA (ReAct from scratch)
-- [x] Phase 6 — Dockerisation
-- [ ] Phase 7 — Déploiement Cloud
+- [x] Phase 6 — Dockerisation (5 microservices)
+- [x] Phase 7 — Déploiement Cloud (Groq + Pinecone + Render)
+- [ ] Phase 8 — Mémoire persistante
+- [ ] Phase 9 — Agent autonome complet
 
 ---
 
-##  Auteur
+## 👨‍💻 Auteur
 
 **GUEPIE Aristide Maurel**  
-Data Scientist / MLOps Engineer  
-Abidjan, Côte d'Ivoire
-
----
-
-##  Contexte
-
-Projet développé dans le cadre du **Club D.I.A.M** — groupe de mentors spécialisés en IA,  
-avec pour objectif de former la prochaine génération d'**AI Engineers** en Côte d'Ivoire.
+Data Scientist / MLOps Engineer / AI Engineer  
+📍 Abidjan, Côte d'Ivoire  
+🔗 [Portfolio](https://maurel20245.github.io/chatbot-diam)  
+🔗 [LinkedIn](https://www.linkedin.com/in/maurel-guepie-907b2b154/)
 
 ---
 

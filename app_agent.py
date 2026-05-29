@@ -1,5 +1,7 @@
 import streamlit as st
 from src.agent import AIAgent
+import tempfile
+import os
 
 # ── Configuration ─────────────────────────────────────────────────
 st.set_page_config(
@@ -18,6 +20,9 @@ if "agent" not in st.session_state:
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+if "indexed_files" not in st.session_state:
+    st.session_state.indexed_files = []
 
 # ── Sidebar ───────────────────────────────────────────────────────
 with st.sidebar:
@@ -39,6 +44,34 @@ with st.sidebar:
     - *Quelles sont les dernières nouvelles IA ?*
     - *Quels sont les modules B2 dans mes documents ?*
     """)
+
+    st.divider()
+    st.header("📂 Mes Documents")
+
+    uploaded_file = st.file_uploader(
+        "Charge un document",
+        type=["pdf", "txt"],
+        help="PDF ou TXT uniquement"
+    )
+
+    if uploaded_file is not None:
+        if uploaded_file.name not in st.session_state.indexed_files:
+            with st.spinner(f"Indexation de {uploaded_file.name}..."):
+                from src.rag import RAGSystem
+                rag = RAGSystem()
+                suffix = ".pdf" if uploaded_file.name.endswith(".pdf") else ".txt"
+                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                    tmp.write(uploaded_file.read())
+                    tmp_path = tmp.name
+                nb_chunks = rag.index_document(tmp_path)
+                os.unlink(tmp_path)
+                st.session_state.indexed_files.append(uploaded_file.name)
+            st.success(f"✅ {uploaded_file.name} indexé ({nb_chunks} chunks)")
+
+    if st.session_state.indexed_files:
+        st.subheader("Documents indexés :")
+        for f in st.session_state.indexed_files:
+            st.markdown(f"📄 {f}")
 
     st.divider()
     if st.button("🗑️ Effacer", use_container_width=True):
@@ -65,7 +98,6 @@ if prompt := st.chat_input("Pose une question à l'agent..."):
         with st.spinner("L'agent réfléchit et agit..."):
             response = st.session_state.agent.run(prompt)
 
-        # Afficher uniquement la Final Answer
         if "Final Answer:" in response:
             clean_response = response.split("Final Answer:")[-1].strip()
         else:

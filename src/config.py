@@ -20,7 +20,7 @@ CONFIG = {
     "embedding_model": "all-minilm",
     "chunk_size": 700,
     "chunk_overlap": 100,
-    "k": 8,
+    "k": 10,
 
     "system_prompt": """Tu es un assistant IA utile et concis. 
     Tu réponds toujours en français sauf si on te parle autrement."""
